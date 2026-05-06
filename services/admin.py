@@ -31,7 +31,8 @@ def area_admin():
             rgm = int(input("RGM do aluno: "))
             codigo = input("Código disciplina: ")
             registro = int(input("Registro professor: "))
-
+            
+            
             matricular_aluno(
                 rgm,
                 codigo,
@@ -66,6 +67,17 @@ def area_admin():
             pausar()
 
 
+def permitir_curso(curso: str):
+    lista_curso = ("CCP", "ADS", "GTI", "EC", "SI")
+    
+    if curso in lista_curso:
+        return True
+    else:
+        print(f"Curso inválido! Cursos permitidos: {', '.join(lista_curso)}")
+        return False
+    
+    
+
 def gerenciar_alunos():
     while True:
         menu_alunos()
@@ -74,11 +86,15 @@ def gerenciar_alunos():
         if opcao == "1":
             nome = input("Nome:")
             nome = nome.strip().split()[0]
-            sobrenome = input("Sobrenome:")
+            sobrenome = input("Sobrenome: ")
             sobrenome = sobrenome.strip().split()[0]
-            curso = input("curso:")
+            curso = input("Curso: ").upper().strip()
 
-            inserir_aluno( str(nome), str(sobrenome), str(curso))
+            if permitir_curso(curso) is True:
+                inserir_aluno( str(nome), str(sobrenome), str(curso))
+            else:
+                print("Opção inválida.")
+                
             pausar()
 
         elif opcao == "2":
@@ -90,10 +106,19 @@ def gerenciar_alunos():
         elif opcao == "3":
             rgm = int(input("Digite o RGM do aluno: "))
             novo_nome = input("Novo nome: ")
+            novo_nome = novo_nome.strip().split()[0]
+            
             novo_sobrenome = input("Novo sobrenome: ")
-            novo_curso = input("Novo curso: ")
+            novo_sobrenome = novo_sobrenome.strip().split()[0]
+            
+            novo_curso = input("Curso: ")
+            novo_curso = novo_curso.upper().strip()
 
-            editar_aluno(novo_nome, novo_sobrenome, novo_curso, rgm)
+            if permitir_curso(novo_curso) is True:
+                editar_aluno(novo_nome, novo_sobrenome, novo_curso, rgm)
+            else:
+                print("Opção inválida.")
+                
             pausar()
 
         elif opcao == "4":

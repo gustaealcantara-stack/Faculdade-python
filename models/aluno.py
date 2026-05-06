@@ -41,11 +41,12 @@ def inserir_aluno(nome:str, sobrenome:str, curso:str):
     rgm = gerar_rgm()
     email = gerar_email_aluno(nome, sobrenome, rgm)
     senha = str(rgm)[:4]  # primeiros 4 dígitos
-
+    
+    
     try:
         with get_connection() as conn:
             cursor = conn.cursor()  
-
+            
             dados_aluno = (rgm, nome, sobrenome, email, curso)
 
             # Insere alunos no banco de dados
@@ -82,7 +83,9 @@ def inserir_aluno(nome:str, sobrenome:str, curso:str):
 def editar_aluno(novo_nome:str, novo_sobrenome:str, novo_curso:str, rgm: int):
     """Atualiza os dados e gera um e-email novo com os novos nomes."""
     
+    
     novo_email = gerar_email_aluno(novo_nome, novo_sobrenome, rgm)
+    
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
@@ -95,6 +98,8 @@ def editar_aluno(novo_nome:str, novo_sobrenome:str, novo_curso:str, rgm: int):
                 curso = ?
             WHERE rgm = ?
             """
+            
+            ############################################################################
             cursor.execute(sql, (novo_nome, novo_sobrenome, novo_email, novo_curso, rgm))
 
             if cursor.rowcount > 0:
