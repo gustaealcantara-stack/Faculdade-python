@@ -312,15 +312,24 @@ def consultar_notas_aluno(rgm: int):
                 return
             
             for disciplina, codigo, prof_nome, prof_sobrenome, a1, a2, af, media, faltas in dados:
-                status = obter_status(a1, a2, af)
+                status = None
+                if a1 and a2:
+                    status = obter_status(a1, a2, af)
 
                 if faltas > 23:
                     status = "Reprovado por falta"
 
                 print(f"Disciplina: {disciplina} ({codigo})")
                 print(f"Professor: {prof_nome} {prof_sobrenome}")
-                print(f"A1: {a1} | A2: {a2} | AF: {af}")
-                print(f"Média: {media:.1f} | Faltas: {faltas} | Status: {status}")
+                if a1 and a2 and media:
+                    if af:
+                        print(f"A1: {a1} | A2: {a2} | AF: {af}")
+                    else:
+                        print(f"A1: {a1} | A2: {a2}")
+                    print(f"Média: {media:.1f} | Faltas: {faltas} | Status: {status}")
+                else:
+                    print('Notas indisponíveis nesta disciplina.')
+                    print(f'Faltas: {faltas if faltas else 0} | Status: {status if status else ""}')
                 print("-" * 30)
 
     except sqlite3.Error as e:
