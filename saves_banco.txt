@@ -1,0 +1,39 @@
+senhas = 4 primeiros dígitos do registro ou rgm
+admin login = admin@cruzeirodosul.edu.br
+senha = admin123
+
+---- LISTA DE ALUNOS ----
+
+RGM: 82215555 | Mariana Santos
+email: mariana.santos555@cs.cruzeirodosul.edu.br | CCP
+
+RGM: 98311751 | Wesley Jesus
+email: wesley.jesus751@cs.cruzeirodosul.edu.br | CCP
+
+RGM: 70092786 | Leticia pereira
+email: leticia.pereira786@cs.cruzeirodosul.edu.br | GTI
+
+RGM: 19073843 | Steven Wong
+email: steven.wong843@cs.cruzeirodosul.edu.br | CCP
+
+RGM: 15582167 | Renan Neves
+email: renan.neves167@cs.cruzeirodosul.edu.br | CCP
+
+RGM: 58119830 | Douglas Ribeiro
+email: douglas.ribeiro830@cs.cruzeirodosul.edu.br | CCP
+
+RGM: 57693475 | thaina araujo
+email: thaina.araujo475@cs.cruzeirodosul.edu.br | ADS
+
+
+
+
+---- LISTA DE PROFESSORES ----
+Registro: 73662 | Genivaldo José
+Email: genivaldo.josé662@prof.cruzeirodosul.edu.br
+
+
+
+---- DISCIPLINAS ----
+Código: PR001 | Programação
+Código: BD001 | Banco de Dados
