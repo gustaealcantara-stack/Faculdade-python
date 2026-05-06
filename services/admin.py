@@ -72,11 +72,13 @@ def gerenciar_alunos():
         opcao = input("Escolha uma opção: ")
 
         if opcao == "1":
-            nome =str(input("Nome:"))
-            sobrenome =str(input("Sobrenome:"))
-            curso =str(input("curso:"))
+            nome = input("Nome:")
+            nome = nome.strip().split()[0]
+            sobrenome = input("Sobrenome:")
+            sobrenome = sobrenome.strip().split()[0]
+            curso = input("curso:")
 
-            inserir_aluno(nome, sobrenome, curso)
+            inserir_aluno( str(nome), str(sobrenome), str(curso))
             pausar()
 
         elif opcao == "2":
@@ -120,9 +122,11 @@ def gerenciar_professores():
 
         if opcao == "1":
             nome = input("Nome: ")
+            nome = nome.strip().split()[0]
             sobrenome = input("Sobrenome: ")
+            sobrenome = sobrenome.strip().split()[0]
 
-            inserir_professor(nome, sobrenome)
+            inserir_professor(str(nome), str(sobrenome))
             pausar()
 
         elif opcao == "2":
