@@ -2,16 +2,14 @@ senhas = 4 primeiros dígitos do registro ou rgm
 admin login = admin@cruzeirodosul.edu.br
 senha = admin123
 
----- LISTA DE ALUNOS ----
 
-RGM: 82215555 | Mariana Santos
-email: mariana.santos555@cs.cruzeirodosul.edu.br | CCP
+---- LISTA DE ALUNOS ----
 
 RGM: 98311751 | Wesley Jesus
 email: wesley.jesus751@cs.cruzeirodosul.edu.br | CCP
 
-RGM: 70092786 | Leticia pereira
-email: leticia.pereira786@cs.cruzeirodosul.edu.br | GTI
+RGM: 70092786 | Leticia Pinho
+email: leticia.pinho786@cs.cruzeirodosul.edu.br | GTI
 
 RGM: 19073843 | Steven Wong
 email: steven.wong843@cs.cruzeirodosul.edu.br | CCP
@@ -22,18 +20,71 @@ email: renan.neves167@cs.cruzeirodosul.edu.br | CCP
 RGM: 58119830 | Douglas Ribeiro
 email: douglas.ribeiro830@cs.cruzeirodosul.edu.br | CCP
 
-RGM: 57693475 | thaina araujo
+RGM: 57693475 | Thaina Araujo
 email: thaina.araujo475@cs.cruzeirodosul.edu.br | ADS
 
+RGM: 41481141 | Gustavo Esteves
+email: gustavo.esteves141@cs.cruzeirodosul.edu.br | CCP
 
+RGM: 70061126 | Bruno Oliveira
+email: bruno.oliveira126@cs.cruzeirodosul.edu.br | CCP
+
+RGM: 84344307 | Diogo Souza
+email: diogo.souza307@cs.cruzeirodosul.edu.br | CCP
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+Casos específicos:
+
+RGM: 95661530 | Ńóḿé Áçẽñtûãdó
+email: nome.acentuado530@cs.cruzeirodosul.edu.br | SI
+
+RGM: 67560874 | Nome Igual
+email: nome.igual874@cs.cruzeirodosul.edu.br | EC
+
+RGM: 93550962 | Nome Igual
+email: nome.igual962@cs.cruzeirodosul.edu.br | ADS
+
+RGM: 80458114 | Aluno Sem_nota
+email: aluno.sem_nota114@cs.cruzeirodosul.edu.br | CCP
+
+RGM: 15024472 | Aluno Reprovado_por_falta
+email: aluno.reprovado_por_falta472@cs.cruzeirodosul.edu.br | CCP
+
+RGM: 61485498 | Aluno Reporvado_por_nota
+email: aluno.reporvado_por_nota498@cs.cruzeirodosul.edu.br | CCP
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+------------------------------
 
 
 ---- LISTA DE PROFESSORES ----
-Registro: 73662 | Genivaldo José
-Email: genivaldo.josé662@prof.cruzeirodosul.edu.br
+
+Registro: 73662 | Genivaldo Silva
+Email: genivaldo.silva662@prof.cruzeirodosul.edu.br
+
+Registro: 98680 | Juliano Schimiguel
+Email: juliano.schimiguel680@prof.cruzeirodosul.edu.br
+
+Registro: 29962 | Nelson Missaglia
+Email: nelson.missaglia962@prof.cruzeirodosul.edu.br
+
+Registro: 58443 | Sergio Penedo
+Email: sergio.penedo443@prof.cruzeirodosul.edu.br
+
+------------------------------
 
 
+---- LISTA DE DISCIPLINAS ----
 
----- DISCIPLINAS ----
-Código: PR001 | Programação
-Código: BD001 | Banco de Dados
+Código: PC001 | Programação de Computadores
+Código: IJ001 | Interface e Jornada do Usuário
+Código: PS001 | Prototipagem de Sistemas Computacionais
+Código: EP001 | Engenharia de Prompt e Aplicações em Ia
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+Casos específicos:
+
+Código: PC002 | Programação de Computadores
+
+------------------------------

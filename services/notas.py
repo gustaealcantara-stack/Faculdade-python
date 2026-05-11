@@ -3,6 +3,18 @@ from database import get_connection
 
 
 def buscar_professor_por_registro(registro_professor: int):
+    """
+    Busca um professor pelo número de registro.
+
+    Args:
+        registro_professor (int): Número de registro do professor
+
+    Returns:
+        tuple | None:
+            Uma tupla no formato (id, nome, sobrenome) se o professor
+            for encontrado ou None caso não exista
+    """
+
     with get_connection() as conn:
         cursor = conn.cursor()
 
@@ -16,6 +28,19 @@ def buscar_professor_por_registro(registro_professor: int):
 
 
 def buscar_aluno_por_rgm(rgm: int):
+    """
+    Busca um aluno pelo RGM
+
+    Args:
+        rgm (int): Registro Geral de Matricula do aluno
+
+    Returns:
+        tuple | None:
+            Uma tupla no formato (id, nome, sobrenome) se o aluno
+            for encontrado ou None caso não exista
+
+    """
+
     with get_connection() as conn:
         cursor = conn.cursor()
 
@@ -29,6 +54,18 @@ def buscar_aluno_por_rgm(rgm: int):
 
 
 def buscar_disciplina_por_codigo(codigo: str):
+    """
+    Busca uma disciplina pelo código.
+
+    Args:
+        codigo (str): Código identificador da disciplina
+
+    Returns:
+        tuple | None:
+            Uma tupla no formato (id, nome, codigo) se a disciplina
+            for encotrada ou None caso não exista
+    """
+    
     with get_connection() as conn:
         cursor = conn.cursor()
 
@@ -42,7 +79,28 @@ def buscar_disciplina_por_codigo(codigo: str):
 
 
 def calcular_media(a1=None, a2=None, af=None):
+    """
+    Calcula a média final e o status acadêmico do aluno.
 
+    Regras:
+    - A média é obtida pela soma da A1 e A2
+    - Se a soma for maior ou igual a 6, o aluno é aprovado diretamente
+    - Se a soma for menor que 6 e a AF não tiver sido informada,
+      o status será "AF"
+    - Caso exista AF, ela substitui a menor nota entre A1 e A2
+    - A nova soma define se o aluno foi aprovado após AF ou reprovado
+
+    Args:
+        a1 (float | None): Nota da A1 (SEGUNDA avaliação do semestre)
+        a2 (float | None): Nota da A2 (PRIMEIRA avaliação do semestre)
+        af (float | None): Nota da avaliação final
+    
+    Returns:
+        tuple:
+            - media (float | None): Média calculada
+            - status (str): Situação acadêmica do aluno
+    """
+    
     if a1 is None or a2 is None:
         return None, "Notas incompletas"
 
@@ -74,7 +132,7 @@ def calcular_media(a1=None, a2=None, af=None):
     return media_final, "Reprovado"
 
 
-def matricular_aluno(rgm: int, codigo_disciplina: str, registro_professor: int):
+def vincular_aluno_disciplina(rgm: int, codigo_disciplina: str, registro_professor: int):
     """
     Matricula o aluno em uma disciplina vinculada a um professor.
     """
@@ -146,9 +204,23 @@ def inserir_ou_atualizar_notas(
     faltas=None
 ):
     """
-    Apenas o professor responsável pela matrícula pode atualizar as notas.
-    """
+    Insere ou atualiza as notas de um aluno em uma disciplina.
 
+    Apenas o professor responsável pelo vínculo entre aluno e
+    disciplina tem permissão para lançar ou alterar as notas.
+
+    Args:
+        registro_professor (int): Registro do professor.
+        rgm (int): RGM do aluno.
+        codigo_disciplina (str): Código da disciplina.
+        a1 (float | None): Nota da A1.
+        a2 (float | None): Nota da A2.
+        af (float | None): Nota da Avaliação Final.
+        faltas (int | None): Quantidade de faltas do aluno.
+
+    Returns:
+        None
+    """
     try:
         professor = buscar_professor_por_registro(registro_professor)
         if not professor:
@@ -162,33 +234,47 @@ def inserir_ou_atualizar_notas(
 
         disciplina = buscar_disciplina_por_codigo(codigo_disciplina)
         if not disciplina:
-            print(f"Nenhuma disciplina encontrada com código: {codigo_disciplina}")
+            print(
+                f"Nenhuma disciplina encontrada com código: "
+                f"{codigo_disciplina}"
+            )
             return
 
         professor_id = professor[0]
         aluno_id = aluno[0]
         disciplina_id = disciplina[0]
 
-        media, status = calcular_media(a1, a2, af)
-        
+        # Calcula a média numérica.
+        media, _ = calcular_media(a1, a2, af)
+
+        # Determina o status final considerando também as faltas.
+        status = obter_status(a1, a2, af, faltas or 0)
+
         with get_connection() as conn:
             cursor = conn.cursor()
 
+            # Verifica se o professor possui vínculo com este
+            # aluno e disciplina.
             cursor.execute("""
-                SELECT id FROM notas
+                SELECT id
+                FROM notas
                 WHERE aluno_id = ?
-                AND disciplina_id = ?
-                AND professor_id = ?
+                  AND disciplina_id = ?
+                  AND professor_id = ?
             """, (aluno_id, disciplina_id, professor_id))
 
             resultado = cursor.fetchone()
 
             if not resultado:
-                print("Este professor não tem permissão para lançar notas desse aluno nessa disciplina.")
+                print(
+                    "Este professor não tem permissão para "
+                    "lançar notas desse aluno nessa disciplina."
+                )
                 return
 
             nota_id = resultado[0]
 
+            # Atualiza notas, média e faltas.
             cursor.execute("""
                 UPDATE notas
                 SET a1 = ?,
@@ -201,6 +287,7 @@ def inserir_ou_atualizar_notas(
 
             print("Notas atualizadas com sucesso!")
 
+            # Exibe o resultado final.
             if media is not None:
                 print(f"Média: {media:.1f}")
                 print(f"Status: {status}")
@@ -211,7 +298,26 @@ def inserir_ou_atualizar_notas(
 
 def consultar_notas_professor(registro_professor: int):
     """
-    Professor consulta apenas as notas dos alunos vinculados a ele.
+    Exibe as notas dos alunos vinculados ao professor informado.
+
+    A consulta apresenta, para cada aluno:
+    - RGM e nome completo;
+    - disciplina e código;
+    - notas A1, A2 e AF;
+    - média final;
+    - quantidade de faltas;
+    - status acadêmico.
+
+    O status é calculado com base nas notas utilizando a função
+    ``obter_status()``. Caso o aluno possua mais de 25 faltas,
+    o status é sobrescrito para ``"Reprovado por falta"``,
+    independentemente da média obtida.
+
+    Args:
+        registro_professor (int): Número de registro do professor.
+
+    Returns:
+        None
     """
 
     try:
@@ -226,7 +332,7 @@ def consultar_notas_professor(registro_professor: int):
             cursor = conn.cursor()
 
             cursor.execute("""
-                SELECT 
+                SELECT
                     alunos.rgm,
                     alunos.nome,
                     alunos.sobrenome,
@@ -238,8 +344,10 @@ def consultar_notas_professor(registro_professor: int):
                     notas.media,
                     notas.faltas
                 FROM notas
-                INNER JOIN alunos ON notas.aluno_id = alunos.id
-                INNER JOIN disciplinas ON notas.disciplina_id = disciplinas.id
+                INNER JOIN alunos
+                    ON notas.aluno_id = alunos.id
+                INNER JOIN disciplinas
+                    ON notas.disciplina_id = disciplinas.id
                 WHERE notas.professor_id = ?
             """, (professor_id,))
 
@@ -251,28 +359,74 @@ def consultar_notas_professor(registro_professor: int):
                 print("Nenhuma nota encontrada para este professor.")
                 return
 
-            for rgm, nome, sobrenome, disciplina, codigo, a1, a2, af, media, faltas in dados:
+            for (
+                rgm,
+                nome,
+                sobrenome,
+                disciplina,
+                codigo,
+                a1,
+                a2,
+                af,
+                media,
+                faltas
+            ) in dados:
+
+                # Calcula o status com base nas notas e faltas.
                 status = obter_status(a1, a2, af)
 
-                if faltas > 23:
+                if faltas > 25:
                     status = "Reprovado por falta"
 
-                print('')
+                print()
                 print(f"Aluno: {nome} {sobrenome} | RGM: {rgm}")
                 print(f"Disciplina: {disciplina} ({codigo})")
                 print(f"A1: {a1} | A2: {a2} | AF: {af}")
-                print(f"Média: {media:.1f} | Faltas: {faltas} | Status: {status}")
-                print("-" * 30)
-                print('')
 
-    except Exception as e:
-        # print({e})
-        print(f"Erro ao consultar notas: Notas ainda não lançadas")
+                # Exibe a média somente quando já tiver sido calculada.
+                if media is not None:
+                    print(
+                        f"Média: {media:.1f} | "
+                        f"Faltas: {faltas} | "
+                        f"Status: {status}"
+                    )
+                else:
+                    print(
+                        f"Média: Não calculada | "
+                        f"Faltas: {faltas} | "
+                        f"Status: {status}"
+                    )
+
+                print("-" * 30)
+                print()
+
+    except Exception:
+        print("Erro ao consultar notas: Notas ainda não lançadas")
 
 
 def consultar_notas_aluno(rgm: int):
     """
-    Aluno consulta apenas suas próprias notas.
+    Exibe as notas e a situação acadêmica do aluno informado.
+
+    A consulta apresenta, para cada disciplina em que o aluno estiver
+    matriculado:
+    - nome da disciplina e código;
+    - nome do professor responsável;
+    - notas A1, A2 e AF (quando houver);
+    - média final;
+    - quantidade de faltas;
+    - status acadêmico.
+
+    O status é calculado pela função ``obter_status()``, que considera
+    tanto as notas quanto a quantidade de faltas. Se o aluno possuir
+    mais de 25 faltas, o status será ``"Reprovado por falta"``,
+    independentemente da média obtida.
+
+    Args:
+        rgm (int): Registro Geral de Matrícula do aluno.
+
+    Returns:
+        None
     """
 
     try:
@@ -298,8 +452,10 @@ def consultar_notas_aluno(rgm: int):
                     notas.media,
                     notas.faltas
                 FROM notas
-                INNER JOIN disciplinas ON notas.disciplina_id = disciplinas.id
-                INNER JOIN professores ON notas.professor_id = professores.id
+                INNER JOIN disciplinas
+                    ON notas.disciplina_id = disciplinas.id
+                INNER JOIN professores
+                    ON notas.professor_id = professores.id
                 WHERE notas.aluno_id = ?
             """, (aluno_id,))
 
@@ -310,34 +466,80 @@ def consultar_notas_aluno(rgm: int):
             if not dados:
                 print("Nenhuma nota encontrada.")
                 return
-            
-            for disciplina, codigo, prof_nome, prof_sobrenome, a1, a2, af, media, faltas in dados:
-                status = None
-                if a1 and a2:
-                    status = obter_status(a1, a2, af)
 
-                if faltas > 23:
-                    status = "Reprovado por falta"
+            for (
+                disciplina,
+                codigo,
+                prof_nome,
+                prof_sobrenome,
+                a1,
+                a2,
+                af,
+                media,
+                faltas
+            ) in dados:
+
+                # Calcula o status considerando notas e faltas.
+                status = obter_status(a1, a2, af, faltas or 0)
 
                 print(f"Disciplina: {disciplina} ({codigo})")
                 print(f"Professor: {prof_nome} {prof_sobrenome}")
-                if a1 and a2 and media:
-                    if af:
+
+                # Exibe as notas, quando já tiverem sido lançadas.
+                if a1 is not None and a2 is not None:
+                    if af is not None:
                         print(f"A1: {a1} | A2: {a2} | AF: {af}")
                     else:
                         print(f"A1: {a1} | A2: {a2}")
-                    print(f"Média: {media:.1f} | Faltas: {faltas} | Status: {status}")
                 else:
-                    print('Notas indisponíveis nesta disciplina.')
-                    print(f'Faltas: {faltas if faltas else 0} | Status: {status if status else ""}')
+                    print("Notas indisponíveis nesta disciplina.")
+
+                # Exibe média e status, quando a média já tiver sido calculada.
+                if media is not None:
+                    print(
+                        f"Média: {media:.1f} | "
+                        f"Faltas: {faltas} | "
+                        f"Status: {status}"
+                    )
+                else:
+                    print(
+                        f"Média: Não calculada | "
+                        f"Faltas: {faltas or 0} | "
+                        f"Status: {status}"
+                    )
+
                 print("-" * 30)
 
-    except sqlite3.Error as e:
-        # print({e})
-        print(f"Erro ao consultar notas do aluno:Notas ainda não lançadas")
+    except sqlite3.Error:
+        print("Erro ao consultar notas do aluno: Notas ainda não lançadas")
 
- 
-def obter_status(a1=None, a2=None, af=None):
-    media, status = calcular_media(a1, a2, af)
+
+def obter_status(a1=None, a2=None, af=None, faltas=0):
+    """
+    Determina a situação acadêmica final do aluno.
+
+    A função considera:
+    - o resultado de ``calcular_media()``;
+    - a quantidade de faltas.
+
+    Regras:
+    - Se o aluno possuir mais de 25 faltas, o status será
+      "Reprovado por falta", independentemente da média.
+    - Caso contrário, o status será o retornado por
+      ``calcular_media()``.
+
+    Args:
+        a1 (float | None): Nota da A1.
+        a2 (float | None): Nota da A2.
+        af (float | None): Nota da Avaliação Final.
+        faltas (int): Quantidade de faltas do aluno.
+
+    Returns:
+        str: Situação acadêmica final do aluno.
+    """
+    _, status = calcular_media(a1, a2, af)
+
+    if faltas > 25:
+        return "Reprovado por falta"
+
     return status
-

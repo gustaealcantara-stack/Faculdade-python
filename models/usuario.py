@@ -2,10 +2,23 @@ import sqlite3
 from database import get_connection
 
 
-def autenticar_usuario(email: str, senha: str):
+def autenticar_usuario(email: str, senha: str) -> tuple | None:
     """
-    Autentica um usuário pelo email e senha.
-    Retorna os dados do usuário se encontrar, senão retorna None.
+    Autentica um usuário no sistema com base em email e senha.
+
+    A função consulta a tabela `usuarios` e verifica se existe
+    um registro com as credenciais informadas.
+
+    Args:
+        email (str): Email do usuário.
+        senha (str): Senha do usuário.
+
+    Returns:
+         tuple | None:
+            - tuple: dados do usuário autenticado no formato
+              (id, email, perfil, aluno_id, professor_id)
+            - None: caso não exista usuário com as credenciais informadas
+              ou ocorra falha na consulta
     """
 
     try:
@@ -25,8 +38,19 @@ def autenticar_usuario(email: str, senha: str):
         return None
     
 
-def obter_usuarios():
-    """Retorna todos os usuários cadastrados."""
+def obter_usuarios() -> list[tuple] | list:
+    """
+    Retorna todos os usuários cadastrados no sistema.
+
+    Essa função consulta a tabela ``usuarios`` e retorna todos os registros
+    existentes no banco de dados.
+
+    Returns:
+        list[tuple] | list:
+            - list[tuple]: lista de usuários encontrados no banco,
+              onde cada registro contém (id, email, perfil, aluno_id, professor_id)
+            - list: lista vazia caso ocorra erro na consulta ou não existam dados
+    """
     try:
         with get_connection() as conn:
             cursor = conn.cursor()

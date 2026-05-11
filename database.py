@@ -1,19 +1,54 @@
 import sqlite3
 
 
-def get_connection():
-    """Cria a conexão com o banco de dados"""
+def get_connection() -> sqlite3.Connection:
+    """
+    Cria e retorna uma conexão com o banco de dados SQLite e
+    abre o arquivo ``faculdade.db``
+    
+    Returns:
+        sqlite3.Connection: Objeto de conexão com o banco de dados.
+    """
+    # Abre (ou cria, caso não exista) o arquivo do banco de dados.
     conn = sqlite3.connect("faculdade.db")
+
+    # Ativa a verificação de chaves estrangeiras no SQLite.
     conn.execute("PRAGMA foreign_keys = ON")
+
     return conn
 
 
-def inicializar_db ():
-    """Cria as tabelas do banco de dados caso ainda não existam"""
+def inicializar_db() -> None:
+    """
+     Cria todas as tabelas do sistema caso ainda não existam.
+
+    As tabelas criadas são:
+    - alunos
+    - professores
+    - disciplinas
+    - notas
+    - usuarios
+
+    Ao final da inicialização, a função também garante a existência
+    de um usuário administrador padrão, utilizando ``INSERT OR IGNORE``
+    para evitar duplicações.
+
+    Usuário administrador padrão:
+    - Email: admin@cruzeirodosul.edu.br
+    - Senha: admin123
+
+    Returns:
+        None
+    """
+    
+    # Abre uma conexão com o banco e fecha automaticamente ao final.
     with get_connection() as conn:
         cursor = conn.cursor()
 
-        # Tabela de alunos
+        # ==========================================================
+        # TABELA ALUNOS
+        # Armazena os dados cadastrais dos alunos.
+        # ==========================================================
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS alunos (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -24,8 +59,11 @@ def inicializar_db ():
             curso TEXT
         )
         """)
-
-        # Tabela de professores
+        
+        # ==========================================================
+        # TABELA PROFESSORES
+        # Armazena os dados cadastrais dos professores.
+        # ==========================================================
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS professores (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -36,7 +74,10 @@ def inicializar_db ():
         )
         """)
 
-        # Tabela de disciplinas
+        # ==========================================================
+        # TABELA DISCIPLINAS
+        # Armazena as disciplinas disponíveis no sistema.
+        # ==========================================================
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS disciplinas (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -45,7 +86,18 @@ def inicializar_db ():
         )
         """)
 
-       # Tabela de notas: relação entre aluno, professor e disciplina com notas e faltas
+        # ==========================================================
+        # TABELA NOTAS
+        # Representa o vínculo entre:
+        # - aluno
+        # - professor
+        # - disciplina
+        #
+        # Também armazena:
+        # - notas A1, A2 e AF
+        # - média final
+        # - quantidade de faltas
+        # ==========================================================
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS notas (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -64,21 +116,36 @@ def inicializar_db ():
         )
         """)
         
-        # Usuários do sistema: autenticação e vínculo com aluno ou professor
+        # ==========================================================
+        # TABELA USUARIOS
+        # Responsável pela autenticação e controle de acesso.
+        #
+        # Perfis permitidos:
+        # - aluno
+        # - professor
+        # - admin
+        #
+        # Dependendo do perfil:
+        # - aluno     -> deve possuir aluno_id
+        # - professor -> deve possuir professor_id
+        # - admin     -> não possui vínculo com aluno ou professor
+        #
+        # A restrição CHECK garante essas regras automaticamente.
+        # ==========================================================
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS usuarios (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             email TEXT UNIQUE NOT NULL,
             senha TEXT NOT NULL,
-            perfil TEXT NOT NULL CHECK (perfil IN ('aluno', 'professor', 'admin')),
+            perfil TEXT NOT NULL CHECK (
+                perfil IN ('aluno', 'professor', 'admin')
+            ),
             aluno_id INTEGER,
             professor_id INTEGER,
                        
             FOREIGN KEY (aluno_id) REFERENCES alunos(id),
             FOREIGN KEY (professor_id) REFERENCES professores(id),
-                       
-            -- Garante integridade dos dados:
-            -- Apenas um vínculo deve existir, de acordo com o perfil                       
+                                              
             CHECK (
                 (perfil = 'aluno' AND aluno_id IS NOT NULL AND professor_id IS NULL) OR
                 (perfil = 'professor' AND professor_id IS NOT NULL AND aluno_id IS NULL) OR
@@ -87,7 +154,13 @@ def inicializar_db ():
         )
         """)
         
-        # Garante que sempre exista um admin
+        # ==========================================================
+        # USUÁRIO ADMINISTRADOR PADRÃO
+        #
+        # INSERT OR IGNORE:
+        # - Insere o registro caso ele ainda não exista.
+        # - Se já existir um usuário com o mesmo e-mail, nada acontece.
+        # ==========================================================
         cursor.execute("""
             INSERT OR IGNORE INTO usuarios (
                 email,
@@ -104,30 +177,34 @@ def inicializar_db ():
         ))
 
 
-def excluir_tabela(nome_tabela: str):
-    """Exclui apenas uma tabela das válidas"""
-    tabelas_validas = ["alunos", "professores", "disciplinas", "notas", "usuarios"]
-    if nome_tabela not in tabelas_validas:
-        print("Erro: tabela inválida.")
-        return
-    
-    try:
-        with get_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute(f"DROP TABLE IF EXISTS {nome_tabela}")
-            print(f"Tabela '{nome_tabela}' excluída com sucesso.")
+def excluir_todas_tabelas() -> None:
+    """
+    Exclui todas as tabelas do banco de dados.
 
-    except sqlite3.Error as e:
-        print(f"Erro ao excluir tabela: {e}")
+    A ordem de exclusão é importante para evitar erros de
+    chave estrangeira (FOREIGN KEY constraint failed). Por isso,
+    a tabela ``notas`` é removida primeiro, seguida pelas tabelas
+    que dependem dela ou que possuem relacionamentos entre si.
 
+    Tabelas excluídas:
+    1. notas
+    2. usuarios
+    3. alunos
+    4. professores
+    5. disciplinas
 
-def excluir_todas_tabelas():
+    Returns:
+        None
+    """
+
+    # Lista de tabelas na ordem correta de exclusão.
     tabelas = ["notas", "usuarios", "alunos", "professores", "disciplinas"]
 
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
 
+            # Percorre a lista e remove cada tabela.
             for tabela in tabelas:
                 cursor.execute(f"DROP TABLE IF EXISTS {tabela}")
                 print(f"Tabela '{tabela}' excluída com sucesso.")
