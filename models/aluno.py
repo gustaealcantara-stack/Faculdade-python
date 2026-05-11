@@ -176,11 +176,28 @@ def editar_aluno(
     
     # Recria o e-mail com base nos novos dados
     novo_email = gerar_email_aluno(novo_nome, novo_sobrenome, rgm)
+    print(novo_email)
     
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
 
+            # 1. Buscar ID interno do aluno
+            cursor.execute("""
+                SELECT id
+                FROM alunos
+                WHERE rgm = ?
+            """, (rgm,))
+
+            resultado = cursor.fetchone()
+
+            if not resultado:
+                print(f"Aviso: RGM {rgm} não encontrado para edição.")
+                return
+
+            aluno_id = resultado[0]
+            
+            # 2. Atualizar tabela alunos
             cursor.execute("""
                 UPDATE alunos
                 SET nome = ?,
@@ -196,11 +213,14 @@ def editar_aluno(
                 rgm
             ))
 
-            # verifica se algum registro foi alterado
-            if cursor.rowcount > 0:
-                print(f"Sucesso: Aluno do RGM {rgm} atualizado!")
-            else:
-                print(f"Aviso: RGM {rgm} não encontrado para edição.")
+            # 3. Atualizar tabela usuarios
+            cursor.execute("""
+                UPDATE usuarios
+                SET email = ?
+                WHERE aluno_id = ?
+            """, (novo_email, aluno_id))
+
+            print(f"Sucesso: Aluno do RGM {rgm} atualizado!")
                 
     except sqlite3.Error as e:
         print(f"Erro ao editar banco de dados: {e}")
