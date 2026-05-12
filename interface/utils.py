@@ -126,18 +126,11 @@ def extrair_primeiro_nome(nome_completo: str) -> str:
 
 def extrair_sobrenome(sobrenome_completo: str) -> str:
     """
-      Extrai o último sobrenome relevante de uma string,
-    ignorando preposições comuns 
-
-    A função remove palavras como:
-    - de, da, do, das, dos
-
-    e retorna o último sobrenome válido encontrado.
+    Extrai o último sobrenome de uma string.
 
     Exemplos:
-        "da Silva" → "Silva"
-        "dos Santos" → "Santos"
-        "de Oliveira" → "Oliveira"
+        "Santos da Silva" → "Silva"
+        "Lima de Oliveira" → "Oliveira"
         "Silva Souza" → "Souza"
 
     Args:
@@ -145,31 +138,13 @@ def extrair_sobrenome(sobrenome_completo: str) -> str:
 
     Returns:
         str:
-            Último sobrenome relevante capitalizado.
+            Último sobrenome capitalizado.
             Retorna string vazia ("") caso não haja sobrenome válido.
     """
 
-    # Palavras que não devem ser consideradas como sobrenome
-    palavras_ignorar = {
-        "de",
-        "da",
-        "do",
-        "das",
-        "dos"
-    }
+    ultimo_sobrenome = sobrenome_completo.strip().split()
 
-    # Normaliza entrada e separa em palavras
-    palavras = sobrenome_completo.strip().lower().split()
-
-    # Filtra apenas palavras válidas (remove preposições)
-    sobrenomes_validos = [
-        palavra
-        for palavra in palavras
-        if palavra not in palavras_ignorar
-    ]
-
-    if not sobrenomes_validos:
+    if not ultimo_sobrenome:
         return ""
 
-    # Retorna o último sobrenome com primeira letra maiúscula
-    return sobrenomes_validos[-1].capitalize()
+    return ultimo_sobrenome[-1].capitalize()
