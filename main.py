@@ -42,9 +42,9 @@ def main():
         else:
             print("Email ou senha inválidos.")
             tentar = input("Deseja tentar novamente? (s/n): ").strip().lower()[:1]
-
+            
             # Encerra o sistema caso a resposta seja diferente de "s"
-            if tentar.lower() != "s":
+            if tentar != "s":
                 print("Encerrando o sistema...")
                 break
 
